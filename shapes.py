@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from playing_field import Game
 
 
-
 @dataclass
 class Color:
     white:int = 0
@@ -21,7 +20,7 @@ class BasicFigure:
     def __repr__(self) -> str:
         return self.icon[self.color]
     
-    def __add__(self,arg):
+    def __add__(self,arg) -> str | None:
         if isinstance(arg,str):
             return f'{self}{arg}'
 
@@ -32,6 +31,62 @@ class BasicFigure:
             return f'{self} {arg}'
 
 
+class LongStroke(BasicFigure):
+    def askew(self,board:Game,x,y,color,line) -> list:
+        moves_on_line = []
+        for i in range(1,8):
+
+            if line == 0:
+                match = self.__logic(board,x+i,y+i,color)
+
+            elif line == 1:
+                match = self.__logic(board,x-i,y-i,color)
+
+            elif line == 2:
+                match = self.__logic(board,x-i,y+i,color)
+
+            elif line == 3:
+                match = self.__logic(board,x+i,y-i,color)
+
+            if match:
+                moves_on_line.append(match[0])
+                if match[1] == color:
+                    break
+            else:
+                break
+
+        return moves_on_line
+
+    def check_line(self,board:Game,x,y,color,line) -> list:
+        moves_on_line = []
+        for i in range(1,8):
+
+            if line == 0:
+                match = self.__logic(board,x+i,y,color)
+
+            elif line == 1:
+                match = self.__logic(board,x-i,y,color)
+
+            elif line == 2:
+                match = self.__logic(board,x,y+i,color)
+
+            elif line == 3:
+                match = self.__logic(board,x,y-i,color)
+
+            if match:
+                moves_on_line.append(match[0])
+                if match[1] == color:
+                    break
+            else:
+                break
+
+        return moves_on_line
+
+    def __logic(self,board:Game,x,y,color:Color) -> (tuple[list, int] | None):
+        if board.borders(x,y) and (board.get_color_field(x,y) == Color.empty or board.get_color_field(x,y) == color):
+            return [x,y],board.get_color_field(x,y)
+
+
 class Empty:
     def __init__(self) -> None:
         self.color = Color.empty
@@ -39,7 +94,7 @@ class Empty:
     def __repr__(self) -> str:
         return '.'
 
-    def available_moves(self,board,x,y):
+    def available_moves(self,board,x,y) -> list:
         return []
 
 
@@ -95,33 +150,11 @@ class Horse(BasicFigure):
             return [x,y]
 
 
-class Bishop(BasicFigure):
+class Bishop(LongStroke):
     icon = ('♗','♝')
     
     def __check_line(self,board:Game,x,y,color,line) -> list:
-        moves_on_line = []
-        for i in range(1,8):
-
-            if line == 0:
-                match = self.__logic(board,x+i,y+i,color)
-
-            elif line == 1:
-                match = self.__logic(board,x-i,y-i,color)
-
-            elif line == 2:
-                match = self.__logic(board,x-i,y+i,color)
-
-            elif line == 3:
-                match = self.__logic(board,x+i,y-i,color)
-
-            if match:
-                moves_on_line.append(match[0])
-                if match[1] == color:
-                    break
-            else:
-                break
-
-        return moves_on_line
+        return super().askew(board,x,y,color,line)
      
     def available_moves(self,board:Game,x,y) -> list | None:
         moves = []
@@ -137,38 +170,12 @@ class Bishop(BasicFigure):
 
         return moves
 
-    def __logic(self,board:Game,x,y,color:Color) -> (tuple[list, int] | None):
-        if board.borders(x,y) and (board.get_color_field(x,y) == Color.empty or board.get_color_field(x,y) == color):
-            return [x,y],board.get_color_field(x,y)
 
-
-class Rook(BasicFigure):
+class Rook(LongStroke):
     icon = ('♖','♜')
 
     def __check_line(self,board:Game,x,y,color,line) -> list:
-        moves_on_line = []
-        for i in range(1,8):
-
-            if line == 0:
-                match = self.__logic(board,x+i,y,color)
-
-            elif line == 1:
-                match = self.__logic(board,x-i,y,color)
-
-            elif line == 2:
-                match = self.__logic(board,x,y+i,color)
-
-            elif line == 3:
-                match = self.__logic(board,x,y-i,color)
-
-            if match:
-                moves_on_line.append(match[0])
-                if match[1] == color:
-                    break
-            else:
-                break
-
-        return moves_on_line
+        return super().check_line(board,x,y,color,line)
 
     def available_moves(self,board:Game,x,y) -> list | None:
         moves = []
@@ -184,17 +191,35 @@ class Rook(BasicFigure):
 
         return moves
 
-    def __logic(self,board:Game,x,y,color:Color) -> (tuple[list, int] | None):
-        if board.borders(x,y) and (board.get_color_field(x,y) == Color.empty or board.get_color_field(x,y) == color):
-            return [x,y],board.get_color_field(x,y)
 
-
-class Queen(BasicFigure):
+class Queen(LongStroke):
     icon = ('♕','♛')
+
+    def __askew(self,board:Game,x,y,color,line) -> list:
+        return super().askew(board,x,y,color,line)
+
+    def __check_line(self,board:Game,x,y,color,line) -> list:
+        return super().check_line(board,x,y,color,line)
+
+    def available_moves(self,board:Game,x,y) -> list | None:
+        moves = []
+
+        for i in range(4):
+            if self.color == Color.white:
+                print(self.__check_line(board,x,y,Color.black,i))
+                moves += self.__check_line(board,x,y,Color.black,i)
+                moves += self.__askew(board,x,y,Color.black,i)
+
+            elif self.color == Color.black:         
+                print(self.__check_line(board,x,y,Color.white,i))
+                moves += self.__check_line(board,x,y,Color.white,i)
+                moves += self.__askew(board,x,y,Color.white,i)
+
+        return moves
 
 
 class King(BasicFigure):
-    icon = ('♕','♚')
+    icon = ('♔','♚')
 
 
 if __name__ == "__main__":

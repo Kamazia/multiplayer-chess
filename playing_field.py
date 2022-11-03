@@ -92,4 +92,9 @@ if __name__ == '__main__':
 
     a.make_moves(0,5,1,4)
 
+    a.make_moves(3,7,6,4)
+    a.make_moves(6,4,4,2)
+
+    a.make_moves(3,0,4,2)
+
     print(str(a)+'\n\n')
