@@ -1,8 +1,8 @@
 from board import Board
-from shapes import Bishop, Color, Empty, Horse, King, Pawn, Queen, Rook
+from shapes import Bishop, Color, Empty, Knight, King, Pawn, Queen, Rook
 
 
-class Game(Board):
+class ChessBoard(Board):
     def __init__(self) -> None:
         super().__init__()
         self.board = self.__start_position()
@@ -13,7 +13,6 @@ class Game(Board):
     def __switch_color(self,line) -> Color:
         if line == Color.white:
             return Color.white
-
         else:
             return Color.black
 
@@ -27,7 +26,7 @@ class Game(Board):
                 
         for line in range(0,7+1,7):
             for position in range(1,6+1,5):
-                self.board[line][position] = Horse(self.__switch_color(line))
+                self.board[line][position] = Knight(self.__switch_color(line))
 
         for line in range(0,7+1,7):
             for position in range(2,5+1,3):
@@ -49,6 +48,8 @@ class Game(Board):
         return self.board
 
     def get_color_field(self,x,y):
+        if (x<0 or x>7 or y<0 or y>7):
+            return []
         return self.board[y][x].color
 
     def make_moves(self,x_from,y_from,x_to,y_to):
@@ -60,12 +61,19 @@ class Game(Board):
             self.board[y_from][x_from] = Empty()
             return self
 
+    def make_moves_two(self,x_from,y_from):
+        #print(self.board[y_from][x_from])
+        motion = self.board[y_from][x_from].available_moves(self,x_from,y_from)
+        print(f'{self.board[y_from][x_from]} to {motion}')
+        return motion
+
 
 
 if __name__ == '__main__':
-    a = Game()
+    a = ChessBoard()
 
-    a.make_moves(0,1,0,2)
+
+    '''a.make_moves(0,1,0,2)
     a.make_moves(0,2,0,3)
     a.make_moves(0,0,0,2)
     a.make_moves(0,2,4,2)
@@ -96,5 +104,9 @@ if __name__ == '__main__':
     a.make_moves(6,4,4,2)
 
     a.make_moves(3,0,4,2)
+
+    a.make_moves(4,7,5,6)
+    a.make_moves(4,7,4,6)
+    a.make_moves(4,6,3,5)'''
 
     print(str(a)+'\n\n')
