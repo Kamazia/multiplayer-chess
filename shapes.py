@@ -2,14 +2,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from tkinter import Button, Canvas, Tk
 from typing import TYPE_CHECKING
-from os import path,system,uname,walk
-
+import platform
+from os import path,system,walk
 
 
 if TYPE_CHECKING:
     from playing_area import ChessBoard
 
-if uname().sysname == "Linux":
+if platform.uname().system == "Linux":
     BASE_PATH_IMG = path.dirname(path.abspath(__file__)) + "/image/"
 
 else:
