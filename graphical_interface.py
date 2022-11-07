@@ -13,13 +13,16 @@ class VisualInterface:
     selected_figure = None
     possible_move = None
 
-    first_color = 'sienna2'
-    second_color = 'burlywood2'
-    highlight_color = 'PaleGreen1'
+    first_color = 'tan2'
+    second_color = 'burlywood1'
+    highlight_color = 'DarkSeaGreen1'
+    highlight_color_enemy = 'salmon'
 
     def __init__(self,root,chessboard) -> None:
         self.chessboard:ChessBoard = chessboard
         self.root:Tk = root
+
+        self.root.geometry('420x420+1500+600')
 
         self.canvas = Canvas(
             master=self.root,
@@ -28,7 +31,6 @@ class VisualInterface:
         )
         self.canvas.pack(padx=8, pady=8)
         self.canvas.bind("<Button-1>", self.click_processing)
-
 
     def draw_board(self) -> None:
         color = self.second_color
@@ -40,15 +42,23 @@ class VisualInterface:
                 x2 = x1 + self.square_size
                 y2 = y1 + self.square_size
 
-                if self.possible_move and [j,i] in self.possible_move:
-                    self.canvas.create_rectangle(x1, y1, x2, y2,fill=self.highlight_color,tags="area")
+                if self.possible_move and ([j,i] in self.possible_move):
+                    
+                    enemy = [position for position in self.possible_move if not isinstance(self.chessboard[i][j],Empty)]
+                    print('---',enemy)
+                    if enemy:
+                        self.canvas.create_rectangle(x1, y1, x2, y2,fill=self.highlight_color_enemy,tags="area")
+                    else:
+                        self.canvas.create_rectangle(x1, y1, x2, y2,fill=self.highlight_color,tags="area")
+
                 else:
                     self.canvas.create_rectangle(x1, y1, x2, y2,fill=color,tags="area")
                 color = self.first_color if color == self.second_color else self.second_color
-        self.canvas.tag_raise("image")        
+        self.canvas.tag_raise("image")
         self.canvas.tag_lower("area")
 
     def draw_figurines(self) -> None:
+        self.canvas.delete('image')
         for i,row in enumerate(self.chessboard):
             for j,col in enumerate(row):
                 if col.color == Color.black:
@@ -77,13 +87,35 @@ class VisualInterface:
     def click_processing(self,event):
         selected_column = int(event.x / self.square_size)
         selected_row = int(event.y / self.square_size)
-        print(selected_column,selected_row)
-        x_y = self.chessboard.make_moves_two(selected_column,selected_row)
+        print("selected: ",selected_column,selected_row)
 
-        self.possible_move = x_y
+        if self.selected_figure:
+            if [selected_column,selected_row] in self.possible_move:
+                print('ходим на ',selected_column,selected_row)
+                self.move(selected_column,selected_row)
 
+                self.selected_figure = None
+                self.possible_move = None
+
+                selected_column = selected_row = None
+                
+                self.draw_figurines()
+
+
+        self.focus(selected_column,selected_row)
         self.draw_board()
 
+    def focus(self,selected_column,selected_row):
+        if selected_column is None:
+            return
+        self.selected_figure = (selected_column,selected_row)
+        self.possible_move = self.chessboard.make_moves_two(selected_column,selected_row)
+
+    def move(self,x,y):
+        print(f"откуда {self.selected_figure[0]} {self.selected_figure[1]} куда {x} {y}")
+        self.chessboard[y][x] = self.chessboard[self.selected_figure[1]][self.selected_figure[0]]
+        self.chessboard[self.selected_figure[1]][self.selected_figure[0]] = Empty()
+        print(self.chessboard)
 
 
 
